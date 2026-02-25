@@ -12,7 +12,7 @@ pipeline {
         BACKEND_DIR = "backend"
         DEPLOY_PATH = "/var/www/html"
     }
-
+    
     stages {
 
         stage('Checkout') {
