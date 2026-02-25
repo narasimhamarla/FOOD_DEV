@@ -1,89 +1,53 @@
 pipeline {
+    agent any
 
-agent any
-
- tools {
+    tools {
         jdk 'jdk17'
         maven 'maven'
-        nodejs 'node'
+        nodejs 'node20'
     }
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub')
-        SONAR_SERVER = 'SonarServer'
+        FRONTEND_DIR = "frontend"
+        BACKEND_DIR = "backend"
+        DEPLOY_PATH = "/var/www/html"
     }
 
     stages {
 
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
-                git 'https://github.com/your-repo/FOOD_DEV.git'
+                git 'https://github.com/narasimhamarla/FOOD_DEV.git'
             }
         }
 
-        stage('Backend Build') {
+        stage('Build Backend') {
             steps {
-                dir('backend') {
-                    sh 'mvn clean package'
+                dir("${BACKEND_DIR}") {
+                    sh 'mvn clean package -DskipTests'
                 }
             }
         }
 
-        stage('Frontend Build') {
+        stage('Build Frontend') {
             steps {
-                dir('frontend') {
+                dir("${FRONTEND_DIR}") {
                     sh 'npm install'
                     sh 'npm run build'
                 }
             }
         }
 
-        stage('Admin Build') {
+        stage('Deploy Frontend') {
             steps {
-                dir('Admin') {
-                    sh 'npm install'
-                    sh 'npm run build'
-                }
+                sh 'rm -rf ${DEPLOY_PATH}/*'
+                sh 'cp -r frontend/dist/* ${DEPLOY_PATH}/'
             }
         }
 
-        stage('SonarQube Analysis') {
+        stage('Restart Nginx') {
             steps {
-                withSonarQubeEnv('SonarServer') {
-                    dir('backend') {
-                        sh 'mvn sonar:sonar'
-                    }
-                }
-            }
-        }
-
-        stage('Build Docker Images') {
-            steps {
-                sh 'docker build -t yourdockerhub/backend ./backend'
-                sh 'docker build -t yourdockerhub/frontend ./frontend'
-                sh 'docker build -t yourdockerhub/admin ./Admin'
-            }
-        }
-
-        stage('Push Docker Images') {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub',
-                    usernameVariable: 'USER',
-                    passwordVariable: 'PASS'
-                )]) {
-                    sh 'echo $PASS | docker login -u $USER --password-stdin'
-                    sh 'docker push yourdockerhub/backend'
-                    sh 'docker push yourdockerhub/frontend'
-                    sh 'docker push yourdockerhub/admin'
-                }
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                sh 'docker compose down'
-                sh 'docker compose up -d'
+                sh 'sudo systemctl restart nginx'
             }
         }
     }
