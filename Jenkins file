@@ -1,0 +1,89 @@
+pipeline {
+    agent any
+
+    tools {
+        jdk 'jdk17'
+        maven 'maven'
+        nodejs 'node'
+    }
+
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub')
+        SONAR_SERVER = 'SonarServer'
+    }
+
+    stages {
+
+        stage('Checkout Code') {
+            steps {
+                git 'https://github.com/your-repo/FOOD_DEV.git'
+            }
+        }
+
+        stage('Backend Build') {
+            steps {
+                dir('backend') {
+                    sh 'mvn clean package'
+                }
+            }
+        }
+
+        stage('Frontend Build') {
+            steps {
+                dir('frontend') {
+                    sh 'npm install'
+                    sh 'npm run build'
+                }
+            }
+        }
+
+        stage('Admin Build') {
+            steps {
+                dir('Admin') {
+                    sh 'npm install'
+                    sh 'npm run build'
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarServer') {
+                    dir('backend') {
+                        sh 'mvn sonar:sonar'
+                    }
+                }
+            }
+        }
+
+        stage('Build Docker Images') {
+            steps {
+                sh 'docker build -t yourdockerhub/backend ./backend'
+                sh 'docker build -t yourdockerhub/frontend ./frontend'
+                sh 'docker build -t yourdockerhub/admin ./Admin'
+            }
+        }
+
+        stage('Push Docker Images') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub',
+                    usernameVariable: 'USER',
+                    passwordVariable: 'PASS'
+                )]) {
+                    sh 'echo $PASS | docker login -u $USER --password-stdin'
+                    sh 'docker push yourdockerhub/backend'
+                    sh 'docker push yourdockerhub/frontend'
+                    sh 'docker push yourdockerhub/admin'
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh 'docker compose down'
+                sh 'docker compose up -d'
+            }
+        }
+    }
+}
