@@ -17,7 +17,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git branch: 'main', url: ' \'https://github.com/narasimhamarla/FOOD_DEV.git\''
+        git branch: 'main', url: 'https://github.com/narasimhamarla/FOOD_DEV.git'
             }
         }
 
