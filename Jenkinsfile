@@ -1,6 +1,6 @@
 pipeline {
   agent any
-
+  
   environment {
     REPO_DIR        = "${WORKSPACE}"
     FRONTEND_DIR    = "${WORKSPACE}/frontend"
