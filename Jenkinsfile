@@ -72,8 +72,8 @@ pipeline {
 
     stage('Smoke Test') {
       steps {
-        sh "curl -I http://127.0.0.1 | head -n 5"
-        sh "curl -i http://127.0.0.1/api/ | head -n 20 || true"
+        sh "curl -I http://47.129.55.124/ | head -n 5"
+        sh "curl -i http://47.129.55.124/api/ | head -n 20 || true"
       }
     }
   }
