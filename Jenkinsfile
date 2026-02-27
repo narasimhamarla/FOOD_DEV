@@ -6,7 +6,7 @@ pipeline {
         maven 'maven'
         nodejs 'node20'
     }
-
+    
     environment {
         FRONTEND_DIR = "frontend"
         BACKEND_DIR = "backend"
