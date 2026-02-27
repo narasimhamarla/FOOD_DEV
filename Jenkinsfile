@@ -64,11 +64,13 @@ pipeline {
     }
 
     stage('Nginx: Reload') {
-      steps {
-        sh 'sudo nginx -t'
-        sh 'sudo systemctl reload nginx'
-      }
+    steps {
+        sh """
+        sudo /usr/sbin/nginx -t
+        sudo /bin/systemctl reload nginx
+        """
     }
+}
 
     stage('Smoke Test') {
       steps {
