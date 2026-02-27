@@ -38,7 +38,7 @@ pipeline {
 
     stage('Frontend: Deploy') {
       steps {
-        sh "sudo rsync -a --delete ${FRONTEND_DIR}/dist/ ${WEB_ROOT}/"
+        sh "rsync -a --delete ${FRONTEND_DIR}/dist/ ${WEB_ROOT}/"
       }
     }
 
